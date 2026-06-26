@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Name Deviation Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0F1B2D;--navy2:#1A2D47;--navy3:#243D5E;
+  --cream:#F8F6F1;--amber:#F5A623;--amber2:#FFBE5C;
+  --green:#27AE60;--green2:#D4EFDF;
+  --red:#E05252;--red2:#FDECEA;
+  --yellow:#F39C12;--yellow2:#FEF9E7;
+  --orange:#E67E22;--orange2:#FDEBD0;
+  --slate:#4A5568;--slate2:#718096;
+  --border:#DDE3EC;--white:#FFFFFF;
+  --fd:'Space Grotesk',sans-serif;--fb:'DM Sans',sans-serif;
+}
+body{background:var(--cream);color:var(--navy);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── HEADER ── */
+header{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--amber);position:sticky;top:0;z-index:200}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:#fff;display:flex;align-items:center;gap:9px}
+.logo-icon{width:30px;height:30px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-sub{color:var(--amber);font-weight:400;font-size:12px}
+.hbadge{background:var(--navy3);color:var(--amber2);font-size:10px;font-family:'Space Grotesk',sans-serif;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── MAIN LAYOUT ── */
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 56px)}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{background:var(--navy);padding:32px 24px;border-right:1px solid var(--navy3);position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
+.sidebar-sub{color:rgba(255,255,255,.45);font-size:13px;margin-bottom:28px;line-height:1.5}
+.feature-list{list-style:none;margin-bottom:28px}
+.feature-list li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:12.5px;line-height:1.45}
+.feature-list li:last-child{border-bottom:none}
+.fi{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.fi.amber{background:rgba(245,166,35,.15)}
+.fi.green{background:rgba(39,174,96,.15)}
+.fi.blue{background:rgba(66,153,225,.15)}
+.fi.red{background:rgba(224,82,82,.15)}
+.fi.purple{background:rgba(159,122,234,.15)}
+.fi.teal{background:rgba(56,178,172,.15)}
+.divider{height:1px;background:rgba(255,255,255,.08);margin:20px 0}
+.sidebar-label{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:10px}
+.status-guide{display:flex;flex-direction:column;gap:7px}
+.sg-row{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.55)}
+.sg-pill{padding:2px 8px;border-radius:12px;font-size:10px;font-family:'Space Grotesk',sans-serif;font-weight:600;white-space:nowrap}
+.pm{background:var(--green2);color:#1a7a45}.pn{background:var(--yellow2);color:#7d5a00}.px{background:var(--red2);color:#b03030}.po{background:var(--orange2);color:#8b4513}
+
+/* ── RIGHT CONTENT ── */
+.content{padding:32px;overflow-y:auto;min-height:calc(100vh - 56px)}
+
+/* ── UPLOAD ZONE ── */
+.upload-title{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.upload-subtitle{color:var(--slate2);font-size:13px;margin-bottom:20px}
+.drop-zone{border:2px dashed var(--border);border-radius:14px;background:var(--white);padding:36px 28px;text-align:center;cursor:pointer;transition:all .2s;position:relative;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.drop-zone:hover,.drop-zone.over{border-color:var(--amber);background:#fffdf7;box-shadow:0 6px 24px rgba(245,166,35,.1)}
+.drop-zone input{display:none}
+.dz-icon{font-size:36px;margin-bottom:4px}
+.dz-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;color:var(--navy)}
+.dz-desc{color:var(--slate2);font-size:13px}
+.dz-btn{background:var(--navy);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:8px 20px;border-radius:7px;border:none;cursor:pointer;transition:background .2s;margin-top:4px}
+.dz-btn:hover{background:var(--navy2)}
+.dz-formats{font-size:11px;color:var(--slate2);margin-top:4px}
+.ftag{display:inline-block;background:var(--cream);border:1px solid var(--border);padding:1px 6px;border-radius:3px;margin:0 2px;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:500}
+
+/* file chips */
+.file-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--navy);font-family:'Space Grotesk',sans-serif;font-weight:500}
+.chip.ok{border-color:var(--green);background:#f0faf4}
+.chip.err{border-color:var(--red);background:#fff5f5}
+.chip-remove{cursor:pointer;color:var(--slate2);font-size:14px;line-height:1;transition:color .15s}
+.chip-remove:hover{color:var(--red)}
+
+/* progress */
+.progress-wrap{margin-top:16px;display:none}
+.progress-wrap.visible{display:block}
+.pbg{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pbf{height:100%;background:var(--amber);border-radius:3px;width:0%;transition:width .3s}
+.pmsg{font-size:11px;color:var(--slate2);margin-top:5px;text-align:center}
+
+/* run button */
+.run-row{display:flex;gap:12px;align-items:center;margin-top:20px}
+.run-btn{background:var(--amber);color:var(--navy);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;padding:11px 28px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;letter-spacing:.01em}
+.run-btn:hover:not(:disabled){background:var(--amber2);transform:translateY(-1px)}
+.run-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.file-count-msg{font-size:12px;color:var(--slate2)}
+
+/* ── RESULTS ── */
+.results{margin-top:32px;display:none}
+.results.visible{display:block}
+
+/* summary strip */
+.summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px}
+.sc{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 14px 10px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.st::before{background:var(--navy3)}.sc.sm::before{background:var(--green)}.sc.sn::before{background:var(--yellow)}.sc.sx::before{background:var(--red)}.sc.so::before{background:var(--orange)}
+.sc-n{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;line-height:1;margin-bottom:3px}
+.sc.st .sc-n{color:var(--navy)}.sc.sm .sc-n{color:var(--green)}.sc.sn .sc-n{color:var(--yellow)}.sc.sx .sc-n{color:var(--red)}.sc.so .sc-n{color:var(--orange)}
+.sc-lbl{font-size:11px;color:var(--slate2);font-weight:500}
+.sc-ico{font-size:14px;margin-bottom:5px}
+
+/* export btn */
+.export-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.export-row h2{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
+.exp-btn{background:var(--navy);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:8px 18px;border-radius:7px;border:none;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px}
+.exp-btn:hover{background:var(--navy2)}
+
+/* project group */
+.proj-group{margin-bottom:24px;background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.proj-header{background:var(--navy);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.proj-name{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:#fff}
+.proj-counts{display:flex;gap:8px;align-items:center}
+.proj-count-pill{padding:2px 8px;border-radius:12px;font-size:10px;font-family:'Space Grotesk',sans-serif;font-weight:700}
+.pcp-mis{background:rgba(224,82,82,.25);color:#ffaaaa}
+.pcp-min{background:rgba(243,156,18,.25);color:#ffcc66}
+.pcp-ok{background:rgba(39,174,96,.25);color:#88ddaa}
+.proj-toggle{color:rgba(255,255,255,.4);font-size:12px;transition:transform .2s}
+.proj-group.collapsed .proj-toggle{transform:rotate(-90deg)}
+.proj-body{display:block}
+.proj-group.collapsed .proj-body{display:none}
+
+/* table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:800px}
+thead th{background:#f1f5f9;color:var(--slate);font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:10px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafbff}
+td{padding:10px 12px;font-size:12.5px;color:var(--navy);vertical-align:middle}
+.ecd{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--slate2);white-space:nowrap}
+.nm{font-weight:500}
+.mono{font-family:monospace;font-size:11px;color:var(--slate)}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;white-space:nowrap}
+.empty-proj{padding:24px;text-align:center;color:var(--slate2);font-size:13px}
+
+/* no-results */
+.no-results{text-align:center;padding:48px 20px;color:var(--slate2)}
+.no-results .nr-icon{font-size:36px;margin-bottom:10px}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto}
+  .summary-strip{grid-template-columns:repeat(3,1fr)}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔍</div>
+    NameCheck <span class="logo-sub">/ Bank Deviation</span>
+  </div>
+  <div class="hbadge">HR Ops Tool</div>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Name Deviation Checker</div>
+    <div class="sidebar-sub">Catch employee name mismatches between payroll records and bank accounts — before salary transfers fail.</div>
+
+    <ul class="feature-list">
+      <li>
+        <div class="fi amber">📂</div>
+        <div><strong style="color:#fff;display:block;margin-bottom:2px">Multi-file Upload</strong>Upload multiple bank advice Excel files at once. Each file = one project.</div>
+      </li>
+      <li>
+        <div class="fi green">⚡</div>
+        <div><strong style="color:#fff;display:block;margin-bottom:2px">Auto-Detection</strong>Header rows, sections (HDFC/NEFT/HOLD) and columns detected automatically.</div>
+      </li>
+      <li>
+        <div class="fi blue">🔬</div>
+        <div><strong style="color:#fff;display:block;margin-bottom:2px">Smart Comparison</strong>Names normalised — case, spaces, punctuation stripped — before comparing.</div>
+      </li>
+      <li>
+        <div class="fi red">📊</div>
+        <div><strong style="color:#fff;display:block;margin-bottom:2px">Project-wise Grouping</strong>Results grouped by project. Expand/collapse each group independently.</div>
+      </li>
+      <li>
+        <div class="fi purple">📥</div>
+        <div><strong style="color:#fff;display:block;margin-bottom:2px">Single Excel Export</strong>All mismatch records in one .xlsx with a sheet per project + summary sheet.</div>
+      </li>
+      <li>
+        <div class="fi teal">🔒</div>
+        <div><strong style="color:#fff;display:block;margin-bottom:2px">100% In-Browser</strong>No server. Files never leave your machine. Works offline.</div>
+      </li>
+    </ul>
+
+    <div class="divider"></div>
+    <div class="sidebar-label">Status Guide</div>
+    <div class="status-guide">
+      <div class="sg-row"><span class="sg-pill pm">✅ Match</span> Names identical after normalisation</div>
+      <div class="sg-row"><span class="sg-pill pn">⚠️ Minor</span> Subset match — reordered or missing part</div>
+      <div class="sg-row"><span class="sg-pill px">❌ Mismatch</span> Clearly different — verify immediately</div>
+      <div class="sg-row"><span class="sg-pill po">🔴 Missing</span> Bank name field is blank</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="sidebar-label">Columns Captured</div>
+    <div style="color:rgba(255,255,255,.45);font-size:11.5px;line-height:1.8">
+      Sl No &nbsp;·&nbsp; Emp Code &nbsp;·&nbsp; Emp Name<br/>
+      Bank Name &nbsp;·&nbsp; Account No &nbsp;·&nbsp; IFSC<br/>
+      Name in Bank &nbsp;·&nbsp; Location &nbsp;·&nbsp; Section
+    </div>
+  </aside>
+
+  <!-- ── RIGHT CONTENT ── -->
+  <main class="content">
+    <div class="upload-title">Upload Bank Advice Files</div>
+    <div class="upload-subtitle">Select one or more Excel files. Each file is treated as a separate project.</div>
+
+    <div class="drop-zone" id="dz">
+      <input type="file" id="fi" accept=".xlsx,.xls,.csv" multiple/>
+      <div class="dz-icon">📂</div>
+      <div class="dz-title">Drop bank advice files here</div>
+      <div class="dz-desc">Supports multiple files — drag &amp; drop or click to browse</div>
+      <button class="dz-btn" onclick="document.getElementById('fi').click()">Choose Files</button>
+      <div class="dz-formats">Accepted: <span class="ftag">.xlsx</span><span class="ftag">.xls</span><span class="ftag">.csv</span></div>
+    </div>
+
+    <div class="file-chips" id="fileChips"></div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="pbg"><div class="pbf" id="pbFill"></div></div>
+      <div class="pmsg" id="pbMsg">Processing…</div>
+    </div>
+
+    <div class="run-row">
+      <button class="run-btn" id="runBtn" disabled onclick="runAll()">Run Deviation Check →</button>
+      <span class="file-count-msg" id="fileCountMsg">No files selected</span>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+      <div class="summary-strip">
+        <div class="sc st"><div class="sc-ico">👥</div><div class="sc-n" id="sTotal">0</div><div class="sc-lbl">Total Checked</div></div>
+        <div class="sc sm"><div class="sc-ico">✅</div><div class="sc-n" id="sMatch">0</div><div class="sc-lbl">Match</div></div>
+        <div class="sc sn"><div class="sc-ico">⚠️</div><div class="sc-n" id="sMinor">0</div><div class="sc-lbl">Minor Deviation</div></div>
+        <div class="sc sx"><div class="sc-ico">❌</div><div class="sc-n" id="sMismatch">0</div><div class="sc-lbl">Mismatch</div></div>
+        <div class="sc so"><div class="sc-ico">🔴</div><div class="sc-n" id="sMissing">0</div><div class="sc-lbl">Missing Name</div></div>
+      </div>
+
+      <div class="export-row">
+        <h2>Mismatch Records — by Project</h2>
+        <button class="exp-btn" onclick="exportExcel()">⬇ Export All to Excel</button>
+      </div>
+
+      <div id="projectGroups"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   XLSX PARSER  —  pure JS, no external libs, no popups
+   ═══════════════════════════════════════════════════════════════ */
+function u32(b,o){return(b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24))>>>0}
+function u16(b,o){return b[o]|(b[o+1]<<8)}
+
+function parseZip(ab){
+  /* Walk local-file headers and collect entries.
+     MUST use .slice() not .subarray() — subarray is a view into the
+     same buffer; when the next file's ArrayBuffer is loaded the old
+     data may be GC'd / overwritten, corrupting earlier files.        */
+  const u=new Uint8Array(ab), files={};
+  for(let i=0; i<u.length-4;){
+    if(u32(u,i)!==0x04034b50){i++;continue;}
+    const fnl=u16(u,i+26), exl=u16(u,i+28);
+    const mth=u16(u,i+8),  csz=u32(u,i+18);
+    const fname=new TextDecoder().decode(u.subarray(i+30,i+30+fnl));
+    const ds=i+30+fnl+exl;
+    files[fname]={m:mth, d:u.slice(ds,ds+csz)};   // slice = owned copy
+    i=ds+csz;
+  }
+  return files;
+}
+
+async function inflate(data){
+  const ds=new DecompressionStream('deflate-raw');
+  const w=ds.writable.getWriter();
+  w.write(data); w.close();
+  const chunks=[], r=ds.readable.getReader();
+  for(;;){const{done,value}=await r.read(); if(done)break; chunks.push(value);}
+  const tot=chunks.reduce((s,c)=>s+c.length,0);
+  const out=new Uint8Array(tot); let off=0;
+  for(const c of chunks){out.set(c,off); off+=c.length;}
+  return out;
+}
+
+async function getXml(files,name){
+  const f=files[name]||files[name.replace(/^\//,'')];
+  if(!f) return '';
+  const u=(f.m===8)?await inflate(f.d):f.d;
+  return new TextDecoder('utf-8').decode(u);
+}
+
+function xe(s){
+  return s.replace(/&amp;/g,'&').replace(/&lt;/g,'<')
+          .replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+}
+
+async function parseXlsx(ab){
+  const files=parseZip(ab);
+
+  /* shared strings */
+  const ssXml=await getXml(files,'xl/sharedStrings.xml');
+  const ss=[];
+  for(const m of ssXml.matchAll(/<si>([\s\S]*?)<\/si>/g))
+    ss.push(xe(m[1].replace(/<[^>]+>/g,'')).trim());
+
+  /* sheet 1 */
+  const shXml=await getXml(files,'xl/worksheets/sheet1.xml');
+  const rows=[];
+  for(const rm of shXml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)){
+    const cells=[];
+    for(const cm of rm[1].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)){
+      const attr=cm[1], inner=cm[2];
+      const ref=(attr.match(/r="([A-Z]+)/)||[])[1];
+      if(!ref) continue;
+      const ci=ref.split('').reduce((n,c)=>n*26+c.charCodeAt(0)-64,0)-1;
+      const t=(attr.match(/t="([^"]*)"/)||[])[1]||'';
+      const v=(inner.match(/<v>([\s\S]*?)<\/v>/)||[])[1]||'';
+      let val='';
+      if(t==='s')          val=ss[parseInt(v)]??'';
+      else if(t==='inlineStr'){val=xe((inner.match(/<t>([\s\S]*?)<\/t>/)||[])[1]||'');}
+      else                 val=v;
+      cells[ci]=String(val).trim();
+    }
+    // convert sparse array to dense: fill any holes with ''
+    const dense=Array.from({length:cells.length},(_,i)=>cells[i]??'');
+    if(dense.some(c=>c)) rows.push(dense);
+  }
+  return rows;
+}
+
+function parseCsv(txt){
+  return txt.split(/\r?\n/).map(l=>{
+    const cells=[]; let cur='',q=false;
+    for(const ch of l){
+      if(ch==='"'){q=!q;}
+      else if(ch===','&&!q){cells.push(cur.trim());cur='';}
+      else cur+=ch;
+    }
+    cells.push(cur.trim()); return cells;
+  }).filter(r=>r.some(c=>c));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILE MANAGEMENT  —  stable-ID chips, no index-shifting bugs
+   ═══════════════════════════════════════════════════════════════ */
+let loadedFiles=[];
+let _fid=0;
+
+document.getElementById('fi').addEventListener('change',e=>addFiles([...e.target.files]));
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');addFiles([...e.dataTransfer.files]);});
+
+async function addFiles(newFiles){
+  const pw=document.getElementById('progressWrap');
+  pw.classList.add('visible');
+  for(let i=0;i<newFiles.length;i++){
+    const f=newFiles[i];
+    setProgress(Math.round(((i+0.1)/newFiles.length)*88), `Reading ${f.name}…`);
+    try{
+      let rows;
+      const ext=f.name.split('.').pop().toLowerCase();
+      if(ext==='csv'){
+        rows=parseCsv(await f.text());
+      } else {
+        /* ab.slice(0) gives a brand-new owned ArrayBuffer per file */
+        rows=await parseXlsx((await f.arrayBuffer()).slice(0));
+      }
+      const id=++_fid;
+      loadedFiles.push({id, name:f.name, rows});
+      addChip(f.name, true, id);
+    } catch(err){
+      console.error('Read error: '+f.name, err);
+      addChip(f.name, false, 0);
+    }
+  }
+  setProgress(100,'All files ready ✓');
+  setTimeout(()=>pw.classList.remove('visible'),1400);
+  updateRunBtn();
+}
+
+function addChip(name,ok,id){
+  const c=document.createElement('div');
+  c.className='chip '+(ok?'ok':'err');
+  c.dataset.fid=id;
+  c.innerHTML=`<span>${ok?'✓':'✗'}</span><span title="${name}">${name}</span>`
+    +(ok?`<span class="chip-remove" onclick="removeFile(this)">×</span>`:'');
+  document.getElementById('fileChips').appendChild(c);
+}
+
+function removeFile(el){
+  const chip=el.parentElement;
+  const id=parseInt(chip.dataset.fid);
+  loadedFiles=loadedFiles.filter(f=>f.id!==id);
+  chip.remove();
+  updateRunBtn();
+}
+
+function updateRunBtn(){
+  const n=loadedFiles.length;
+  document.getElementById('runBtn').disabled=(n===0);
+  document.getElementById('fileCountMsg').textContent=
+    n===0?'No files selected':`${n} file${n>1?'s':''} ready`;
+}
+
+function setProgress(p,msg){
+  document.getElementById('pbFill').style.width=p+'%';
+  document.getElementById('pbMsg').textContent=msg;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAME COMPARISON
+   ═══════════════════════════════════════════════════════════════ */
+function norm(n){
+  if(!n||String(n).trim().toLowerCase()==='nan') return '';
+  return String(n).toUpperCase().trim().replace(/\s+/g,' ').replace(/[^A-Z0-9 ]/g,'');
+}
+function classify(a,b){
+  const na=norm(a), nb=norm(b);
+  if(!na) return 'Missing Employee Name';
+  if(!nb) return 'Missing Bank Name';
+  if(na===nb) return 'Match';
+  const t1=new Set(na.split(' ')), t2=new Set(nb.split(' '));
+  const sub=(x,y)=>[...x].every(v=>y.has(v));
+  if(sub(t1,t2)||sub(t2,t1)) return 'Minor Deviation';
+  return 'Mismatch';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILE PARSER  —  mirrors the verified Python logic exactly
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Identify rows to skip when searching for project name */
+const _SKIP=/^(three[\s]*d|threed|banktransfer|bank\s+transfer|for[\s]*:|salary\s+for|slno|hdfc|neft|hold|total|grand|diff|cheque)/i;
+
+function extractProjectName(s){
+  /* "18 PBB SALARY FOR THE MONTH OF MAY-2026" → "18 PBB" */
+  const m=s.match(/^(.*?)\s*salary\s+for\s+the\s+month\b.*/i);
+  if(m&&m[1].trim()) return m[1].trim();
+  return s.trim();
+}
+
+/* Map a header row array to column indices, normalising spaces+underscores.
+   Uses Array.from() to materialise sparse-array holes as undefined,
+   then String(h||'') safely converts undefined/null/empty to ''.          */
+function mapCols(hdrs){
+  // Array.from fills sparse holes; String(h||'') turns undefined → ''
+  const hn=Array.from(hdrs, h=>String(h==null?'':h).toUpperCase().replace(/[\s_]/g,''));
+  const f=(...pats)=>hn.findIndex(h=>h!==''&&pats.some(p=>h===p||h.includes(p)));
+  return {
+    slno: f('SLNO'),
+    code: f('EMPCODE'),
+    emp:  f('EMPNAME'),
+    bank: f('BANKNAME'),
+    acct: f('BANKACNO','ACCOUNTNO'),
+    ifsc: f('IFSCCODE','IFSC'),
+    nib:  f('NAMEINBANK'),
+    loc:  f('LOCATION'),
+  };
+}
+
+function isHeaderRow(vals){
+  /* A header row contains SLNO and at least one EMP column */
+  const up=Array.from(vals,v=>String(v==null?'':v).toUpperCase().replace(/[\s_]/g,''));
+  return up.includes('SLNO') && up.some(v=>v.startsWith('EMP'));
+}
+
+function isSectionLabel(vals){
+  /* Section labels are rows where only 1–2 cells are non-empty
+     and none of them look like a serial number */
+  const ne=Array.from(vals,v=>String(v==null?'':v).trim()).filter(v=>v);
+  if(ne.length===0||ne.length>2) return false;
+  if(/^\d+$/.test(ne[0])) return false;
+  const flat=ne.join(' ').toUpperCase().replace(/[\s_]/g,'');
+  return /^(HDFC|NEFT|HOLD|TOTAL|GRANDTOTAL|GRAND|DIFF|CHEQUE|ONSALREG|DIFFERENCE|ASPER)/.test(flat);
+}
+
+function getSectionName(vals){
+  const ne=Array.from(vals,v=>String(v==null?'':v).trim()).filter(v=>v);
+  const flat=ne.join(' ').toUpperCase().replace(/[\s_]/g,'');
+  if(flat.startsWith('HDFC')) return 'HDFC';
+  if(flat.startsWith('NEFT')) return 'NEFT';
+  if(flat.startsWith('HOLD')) return 'HOLD';
+  return null; /* null = skip, not a section label we track */
+}
+
+function parseFileRows(rows, fileName){
+  /* ── Step 1: project name from row 2 (0-indexed) ── */
+  let proj=fileName.replace(/\.(xlsx|xls|csv)$/i,'');
+  for(const r of rows.slice(0,8)){
+    // Array.from to handle sparse holes
+    const v=(Array.from(r,c=>String(c==null?'':c).trim()).filter(c=>c)[0]||'').trim();
+    if(!v) continue;
+    if(_SKIP.test(v)) continue;
+    if(/^slno$/i.test(v)) break;
+    proj=extractProjectName(v);
+    break;
+  }
+
+  /* ── Step 2: walk all rows, re-map columns at each header row ── */
+  const records=[];
+  let section='BANK';
+  let cols=null;  /* null until we see first header row */
+
+  for(const row of rows){
+    // materialise sparse holes so every index is a real string
+    const vals=Array.from(row,v=>String(v==null?'':v).trim());
+
+    /* header row → remap columns */
+    if(isHeaderRow(vals)){
+      cols=mapCols(vals);
+      continue;
+    }
+
+    /* section / skip row */
+    if(isSectionLabel(vals)){
+      const s=getSectionName(vals);
+      if(s) section=s;
+      continue;
+    }
+
+    /* data row: col 0 must be a plain integer (SLNO) */
+    if(!cols) continue;
+    if(!/^\d+$/.test(vals[0])) continue;
+
+    const empName  = cols.emp >=0 ? vals[cols.emp]  : '';
+    const bankName = cols.nib >=0 ? vals[cols.nib]  : '';
+    if(!empName) continue;
+
+    records.push({
+      project:    proj,
+      section:    section,
+      slno:       cols.slno>=0 ? vals[cols.slno] : vals[0],
+      empCode:    cols.code>=0 ? vals[cols.code] : '',
+      empName,
+      bankType:   cols.bank>=0 ? vals[cols.bank] : '',
+      acctNo:     cols.acct>=0 ? vals[cols.acct] : '',
+      ifsc:       cols.ifsc>=0 ? vals[cols.ifsc] : '',
+      nameInBank: bankName,
+      location:   cols.loc >=0 ? vals[cols.loc]  : '',
+      status:     classify(empName, bankName),
+    });
+  }
+  return {proj, records};
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RUN ALL
+   ═══════════════════════════════════════════════════════════════ */
+let allProjects=[];  // [{proj, records}]
+
+function runAll(){
+  allProjects=[];
+  for(const f of loadedFiles){
+    const {proj,records}=parseFileRows(f.rows, f.name);
+    if(records.length) allProjects.push({proj,records});
+  }
+
+  if(!allProjects.length){alert('No valid employee data found in the uploaded files.');return;}
+
+  // compute totals
+  const all=allProjects.flatMap(p=>p.records);
+  const c=s=>all.filter(r=>r.status===s).length;
+  const miss=all.filter(r=>r.status.includes('Missing')).length;
+  document.getElementById('sTotal').textContent=all.length;
+  document.getElementById('sMatch').textContent=c('Match');
+  document.getElementById('sMinor').textContent=c('Minor Deviation');
+  document.getElementById('sMismatch').textContent=c('Mismatch');
+  document.getElementById('sMissing').textContent=miss;
+
+  renderGroups();
+  const rs=document.getElementById('results');
+  rs.classList.add('visible');
+  rs.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════════════════════ */
+const STATUS_LABEL={
+  'Match':'✅ Match','Minor Deviation':'⚠️ Minor Deviation',
+  'Mismatch':'❌ Mismatch','Missing Bank Name':'🔴 Missing Bank Name',
+  'Missing Employee Name':'🔴 Missing Emp Name'
+};
+const PILL_CLS={'Match':'pm','Minor Deviation':'pn','Mismatch':'px',
+  'Missing Bank Name':'po','Missing Employee Name':'po'};
+
+function pill(s){return`<span class="pill ${PILL_CLS[s]||'pm'}">${STATUS_LABEL[s]||s}</span>`;}
+
+function renderGroups(){
+  const container=document.getElementById('projectGroups');
+  container.innerHTML='';
+
+  for(const {proj,records} of allProjects){
+    const deviations=records.filter(r=>r.status!=='Match');
+    const mis=records.filter(r=>r.status==='Mismatch').length;
+    const min=records.filter(r=>r.status==='Minor Deviation').length;
+    const ok=records.filter(r=>r.status==='Match').length;
+    const miss=records.filter(r=>r.status.includes('Missing')).length;
+
+    const grp=document.createElement('div');
+    grp.className='proj-group';
+
+    const countsHtml=[
+      mis?`<span class="proj-count-pill pcp-mis">❌ ${mis} Mismatch</span>`:'',
+      min?`<span class="proj-count-pill pcp-min">⚠️ ${min} Minor</span>`:'',
+      miss?`<span class="proj-count-pill pcp-mis">🔴 ${miss} Missing</span>`:'',
+      ok?`<span class="proj-count-pill pcp-ok">✅ ${ok} Match</span>`:'',
+    ].filter(Boolean).join('');
+
+    grp.innerHTML=`
+      <div class="proj-header" onclick="toggleGroup(this)">
+        <div class="proj-name">📁 ${escHtml(proj)}</div>
+        <div class="proj-counts">${countsHtml}<span class="proj-toggle">▼</span></div>
+      </div>
+      <div class="proj-body">
+        ${deviations.length===0
+          ? `<div class="empty-proj">🎉 All ${records.length} employees match — no deviations found.</div>`
+          : `<div class="table-wrap">${buildTable(deviations)}</div>`
+        }
+      </div>`;
+    container.appendChild(grp);
+  }
+}
+
+function buildTable(rows){
+  const hdr=`<thead><tr>
+    <th>Sl No</th><th>Emp Code</th><th>Employee Name</th><th>Bank Type</th>
+    <th>Account No</th><th>IFSC Code</th><th>Name in Bank</th>
+    <th>Location</th><th>Section</th><th>Status</th>
+  </tr></thead>`;
+  const body=rows.map(r=>`<tr>
+    <td class="ecd">${escHtml(r.slno)}</td>
+    <td class="ecd">${escHtml(r.empCode)}</td>
+    <td class="nm">${escHtml(r.empName)}</td>
+    <td>${escHtml(r.bankType)}</td>
+    <td class="mono">${escHtml(r.acctNo)}</td>
+    <td class="mono">${escHtml(r.ifsc)}</td>
+    <td class="nm" style="color:var(--red)">${escHtml(r.nameInBank)||'<em style="color:var(--slate2)">blank</em>'}</td>
+    <td>${escHtml(r.location)}</td>
+    <td><span style="font-size:10px;font-family:Space Grotesk,sans-serif;font-weight:600;text-transform:uppercase;color:var(--slate2)">${escHtml(r.section)}</span></td>
+    <td>${pill(r.status)}</td>
+  </tr>`).join('');
+  return `<table>${hdr}<tbody>${body}</tbody></table>`;
+}
+
+function toggleGroup(header){
+  header.closest('.proj-group').classList.toggle('collapsed');
+}
+
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXCEL EXPORT — pure JS, builds a real .xlsx
+   One sheet per project (deviations only) + Summary sheet
+   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   EXPORT — faithful reproduction of source file format
+   Calibri 11, bold headers with solid fill, exact column widths,
+   section label rows, deviation rows highlighted by status
+   ═══════════════════════════════════════════════════════════════ */
+function exportExcel(){
+  if(!allProjects.length){alert('No data to export.');return;}
+
+  const sheetXmls=[], sheetNames=[];
+  const allDevs=allProjects.flatMap(p=>p.records.filter(r=>r.status!=='Match'));
+
+  // ── Summary sheet ──────────────────────────────────────────────
+  const sumRows=[
+    {cells:['THREE D INTEGRATED SOLUTIONS LTD'], style:'co'},
+    {cells:['Bank Transfer Salary Monthly'],      style:'sh'},
+    {cells:['Name Deviation Report'],             style:'pr'},
+    {cells:[]},
+    {cells:['Project','Total','Match','Minor Deviation','Mismatch','Missing'], style:'hdr'},
+  ];
+  for(const {proj,records} of allProjects){
+    const c=s=>records.filter(r=>r.status===s).length;
+    sumRows.push({cells:[proj, records.length, c('Match'), c('Minor Deviation'),
+      c('Mismatch'), records.filter(r=>r.status.includes('Missing')).length]});
+  }
+  sumRows.push({cells:[]});
+  const allR=allProjects.flatMap(p=>p.records);
+  const c=s=>allR.filter(r=>r.status===s).length;
+  sumRows.push({cells:['TOTAL', allR.length, c('Match'), c('Minor Deviation'),
+    c('Mismatch'), allR.filter(r=>r.status.includes('Missing')).length], style:'total'});
+
+  sheetXmls.push(buildSheetXml(sumRows, [30,15,10,20,15,15]));
+  sheetNames.push('Summary');
+
+  // ── Per-project sheets (deviations only, source format) ────────
+  // Cols: SLNO EMP_CODE EMP_NAME BANK NAME BANKACNO LOCATION IFSC CODE NAME IN BANK + STATUS
+  const SRC_COLS=['SLNO','EMP_CODE','EMP_NAME','BANK NAME','BANKACNO','LOCATION','IFSC CODE','NAME IN BANK','STATUS'];
+  // col widths match source: A=5.66 B=11.33 C=33.66 D=19 E=19.44 F=17.55 G=16.11 H=36.66 I=18
+  const SRC_WIDTHS=[5.66,11.33,33.66,19,19.44,17.55,16.11,36.66,18];
+
+  for(const {proj,records} of allProjects){
+    const devs=records.filter(r=>r.status!=='Match');
+    if(!devs.length) continue;
+
+    const rows=[];
+    rows.push({cells:['THREE D INTEGRATED SOLUTIONS LTD'], style:'co'});
+    rows.push({cells:['Bank Transfer Salary Monthly'],      style:'sh'});
+    rows.push({cells:[proj+' — Name Deviation Report'],     style:'pr'});
+    rows.push({cells:[]});
+
+    // group by section
+    const sections=[...new Set(devs.map(r=>r.section))];
+    for(const sec of sections){
+      const secRows=devs.filter(r=>r.section===sec);
+      rows.push({cells:[sec], style:'sec'});
+      rows.push({cells:SRC_COLS, style:'hdr'});
+      let slno=1;
+      for(const r of secRows){
+        rows.push({
+          cells:[slno++, r.empCode, r.empName, r.bankType, r.acctNo, r.location, r.ifsc, r.nameInBank, STATUS_LABEL[r.status]||r.status],
+          style: r.status==='Mismatch'?'mis': r.status==='Minor Deviation'?'min':'miss',
+          slnoCenter:true
+        });
+      }
+      rows.push({cells:['','','','','TOTAL','','','',''], style:'total'});
+      rows.push({cells:[]});
+    }
+
+    sheetXmls.push(buildSheetXml(rows, SRC_WIDTHS));
+    sheetNames.push(proj.replace(/[\\\/\?\*\[\]]/g,'').substring(0,31));
+  }
+
+  // ── All Deviations combined sheet ──────────────────────────────
+  if(allDevs.length){
+    const rows=[];
+    rows.push({cells:['THREE D INTEGRATED SOLUTIONS LTD'],style:'co'});
+    rows.push({cells:['Bank Transfer Salary Monthly'],     style:'sh'});
+    rows.push({cells:['All Projects — Name Deviation Report'],style:'pr'});
+    rows.push({cells:[]});
+    rows.push({cells:['PROJECT',...SRC_COLS],style:'hdr'});
+    for(const r of allDevs){
+      rows.push({
+        cells:[r.project, r.slno, r.empCode, r.empName, r.bankType, r.acctNo, r.location, r.ifsc, r.nameInBank, STATUS_LABEL[r.status]||r.status],
+        style: r.status==='Mismatch'?'mis': r.status==='Minor Deviation'?'min':'miss'
+      });
+    }
+    sheetXmls.unshift(buildSheetXml(rows, [30,...SRC_WIDTHS]));
+    sheetNames.unshift('All Deviations');
+  }
+
+  const blob=buildXlsxBlob(sheetXmls,sheetNames);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='name_deviation_all_projects.xlsx';
+  a.click();
+}
+
+function escXml(v){
+  return String(v==null?'':v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+/* Style IDs referenced in buildSheetXml:
+   0=normal  1=co(company)  2=sh(sheet title)  3=pr(project title)
+   4=hdr(column header)  5=sec(section label)  6=total
+   7=mis(mismatch)  8=min(minor)  9=miss(missing)              */
+const STYLES_XML=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="8">
+  <font><sz val="11"/><name val="Calibri"/></font>
+  <font><b/><sz val="14"/><name val="Calibri"/></font>
+  <font><b/><sz val="12"/><name val="Calibri"/></font>
+  <font><b/><sz val="11"/><name val="Calibri"/></font>
+  <font><b/><sz val="11"/><name val="Calibri"/></font>
+  <font><b/><sz val="11"/><name val="Calibri"/></font>
+  <font><sz val="11"/><name val="Calibri"/></font>
+  <font><sz val="11"/><name val="Calibri"/></font>
+</fonts>
+<fills count="10">
+  <fill><patternFill patternType="none"/></fill>
+  <fill><patternFill patternType="gray125"/></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFD9D9D9"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFCE4D6"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFEB9C"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFFC7CE"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FF0F1B2D"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFD9D9D9"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFF5A623"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FF1A2D47"/></patternFill></fill>
+</fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="10">
+  <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0"><alignment horizontal="center"/></xf>
+  <xf numFmtId="0" fontId="4" fillId="2" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="5" fillId="6" borderId="0" xfId="0"><alignment horizontal="center"/></xf>
+  <xf numFmtId="0" fontId="3" fillId="8" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="6" fillId="3" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="7" fillId="4" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="7" fillId="5" borderId="0" xfId="0"/>
+</cellXfs>
+</styleSheet>`;
+
+/* Map row style → xf index for all columns, and first-col xf for SLNO center */
+const STYLE_MAP={
+  'normal':{xf:0,      col0xf:0},
+  'co':    {xf:1,      col0xf:1},
+  'sh':    {xf:2,      col0xf:2},
+  'pr':    {xf:3,      col0xf:3},
+  'hdr':   {xf:4,      col0xf:4},
+  'sec':   {xf:5,      col0xf:5},
+  'total': {xf:6,      col0xf:6},
+  'mis':   {xf:7,      col0xf:0},   // mismatch orange, slno normal center
+  'min':   {xf:8,      col0xf:0},   // minor yellow
+  'miss':  {xf:9,      col0xf:0},   // missing red
+};
+const SLNO_CENTER_XF=3; // center alignment, normal font
+
+function colLetter(n){
+  let s='';
+  for(n++;n>0;n=Math.floor((n-1)/26)) s=String.fromCharCode(65+((n-1)%26))+s;
+  return s;
+}
+
+function buildSheetXml(rows, colWidths){
+  const ex=escXml;
+  let colsXml='<cols>';
+  colWidths.forEach((w,i)=>{ colsXml+=`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`; });
+  colsXml+='</cols>';
+
+  let sheetData='<sheetData>';
+  rows.forEach((rowDef,ri)=>{
+    if(!rowDef.cells||!rowDef.cells.length){sheetData+=`<row r="${ri+1}"/>`;return;}
+    const sm=STYLE_MAP[rowDef.style||'normal']||STYLE_MAP.normal;
+    sheetData+=`<row r="${ri+1}">`;
+    rowDef.cells.forEach((cell,ci)=>{
+      const ref=`${colLetter(ci)}${ri+1}`;
+      // first col gets center for slno rows, otherwise use row style
+      let xf=sm.xf;
+      if(ci===0 && rowDef.slnoCenter) xf=SLNO_CENTER_XF;
+      const v=ex(cell);
+      const isNum=(typeof cell==='number')||(cell!==''&&cell!=null&&!isNaN(cell)&&typeof cell!=='string');
+      if(isNum) sheetData+=`<c r="${ref}" s="${xf}"><v>${v}</v></c>`;
+      else sheetData+=`<c r="${ref}" s="${xf}" t="inlineStr"><is><t>${v}</t></is></c>`;
+    });
+    sheetData+=`</row>`;
+  });
+  sheetData+='</sheetData>';
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+${colsXml}${sheetData}</worksheet>`;
+}
+
+function buildXlsxBlob(sheets,names){
+  const enc=new TextEncoder();
+  const files={};
+
+  let ctypes=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`;
+  sheets.forEach((_,i)=>ctypes+=`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`);
+  ctypes+=`</Types>`;
+  files['[Content_Types].xml']=enc.encode(ctypes);
+
+  files['_rels/.rels']=enc.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`);
+
+  let wbRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId0" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+  sheets.forEach((_,i)=>wbRels+=`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`);
+  wbRels+=`</Relationships>`;
+  files['xl/_rels/workbook.xml.rels']=enc.encode(wbRels);
+
+  let wb=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets>`;
+  names.forEach((n,i)=>wb+=`<sheet name="${escXml(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`);
+  wb+=`</sheets></workbook>`;
+  files['xl/workbook.xml']=enc.encode(wb);
+  files['xl/styles.xml']=enc.encode(STYLES_XML);
+  sheets.forEach((xml,i)=>{files[`xl/worksheets/sheet${i+1}.xml`]=enc.encode(xml);});
+
+  return zipBlob(files);
+}
+
+function zipBlob(files){
+  // Build a valid ZIP archive (store method, no compression)
+  const parts=[];
+  const dir=[];
+  let offset=0;
+
+  for(const [name,data] of Object.entries(files)){
+    const nameBytes=new TextEncoder().encode(name);
+    const crc=crc32(data);
+    const lh=makeLocalHeader(nameBytes,data,crc);
+    dir.push({nameBytes,data,crc,offset,lh});
+    parts.push(lh,data);
+    offset+=lh.length+data.length;
+  }
+
+  const cdOffset=offset;
+  for(const e of dir){
+    const cd=makeCentralDir(e.nameBytes,e.data,e.crc,e.offset);
+    parts.push(cd);
+    offset+=cd.length;
+  }
+
+  const eocd=makeEOCD(dir.length,offset-cdOffset,cdOffset);
+  parts.push(eocd);
+
+  const total=parts.reduce((s,p)=>s+p.length,0);
+  const out=new Uint8Array(total);let pos=0;
+  for(const p of parts){out.set(p,pos);pos+=p.length;}
+  return new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+function makeLocalHeader(name,data,crc){
+  const h=new Uint8Array(30+name.length);
+  const v=new DataView(h.buffer);
+  v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0,true);
+  v.setUint16(8,0,true);v.setUint16(10,0,true);v.setUint16(12,0,true);
+  v.setUint32(14,crc,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);
+  v.setUint16(26,name.length,true);v.setUint16(28,0,true);
+  h.set(name,30);return h;
+}
+function makeCentralDir(name,data,crc,offset){
+  const h=new Uint8Array(46+name.length);
+  const v=new DataView(h.buffer);
+  v.setUint32(0,0x02014b50,true);v.setUint16(4,20,true);v.setUint16(6,20,true);
+  v.setUint16(8,0,true);v.setUint16(10,0,true);v.setUint16(12,0,true);v.setUint16(14,0,true);
+  v.setUint32(16,crc,true);v.setUint32(20,data.length,true);v.setUint32(24,data.length,true);
+  v.setUint16(28,name.length,true);v.setUint16(30,0,true);v.setUint16(32,0,true);
+  v.setUint16(34,0,true);v.setUint16(36,0,true);v.setUint32(38,0,true);
+  v.setUint32(42,offset,true);h.set(name,46);return h;
+}
+function makeEOCD(count,cdSize,cdOffset){
+  const h=new Uint8Array(22);const v=new DataView(h.buffer);
+  v.setUint32(0,0x06054b50,true);v.setUint16(4,0,true);v.setUint16(6,0,true);
+  v.setUint16(8,count,true);v.setUint16(10,count,true);
+  v.setUint32(12,cdSize,true);v.setUint32(16,cdOffset,true);v.setUint16(20,0,true);
+  return h;
+}
+function crc32(data){
+  let crc=0xFFFFFFFF;
+  if(!crc32.tbl){
+    crc32.tbl=new Uint32Array(256);
+    for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):c>>>1;crc32.tbl[i]=c;}
+  }
+  for(const b of data) crc=crc32.tbl[(crc^b)&0xFF]^(crc>>>8);
+  return (crc^0xFFFFFFFF)>>>0;
+}
+</script>
+</body>
+</html>
